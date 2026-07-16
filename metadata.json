@@ -1,0 +1,6 @@
+{
+  "name": "Sistem Informasi Stok Darah PMI Kabupaten Soppeng",
+  "description": "Sistem Informasi Stok Darah Berbasis Web untuk PMI Kabupaten Soppeng dengan fitur pembaruan stok real-time, dashboard admin, riwayat donor, edukasi, gamifikasi lencana, integrasi RS, dan autentikasi dua faktor (2FA).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

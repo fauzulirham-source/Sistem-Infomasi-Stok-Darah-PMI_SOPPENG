@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PMI Kabupaten Soppeng - Sistem Informasi Stok Darah</title>
+    <script>
+      (function() {
+        if (window.ethereum) {
+          console.log('[MetaMask Early Mock] window.ethereum already exists, not overwriting');
+          return;
+        }
+        const mockAddress = '0x1234567890abcdef1234567890abcdef12345678';
+        const mockChainId = '0x1';
+        const listeners = {};
+        
+        const ethereumMock = {
+          isMetaMask: true,
+          isConnected: () => true,
+          chainId: mockChainId,
+          networkVersion: '1',
+          selectedAddress: mockAddress,
+          _metamask: {
+            isUnlocked: async () => true
+          },
+          request: async function(args) {
+            console.log('[MetaMask Mock Request]', args);
+            if (!args || typeof args !== 'object') {
+              return null;
+            }
+            const method = args.method;
+            if (method === 'eth_requestAccounts' || method === 'eth_accounts') {
+              if (listeners['accountsChanged']) {
+                listeners['accountsChanged'].forEach(cb => {
+                  try { cb([mockAddress]); } catch(e) {}
+                });
+              }
+              return [mockAddress];
+            }
+            if (method === 'eth_chainId') {
+              return mockChainId;
+            }
+            if (method === 'net_version') {
+              return '1';
+            }
+            if (method === 'personal_sign') {
+              return '0xabc123';
+            }
+            if (method === 'eth_blockNumber') {
+              return '0x1';
+            }
+            if (method === 'eth_gasPrice') {
+              return '0x0';
+            }
+            if (method === 'eth_estimateGas') {
+              return '0x0';
+            }
+            if (method === 'eth_sendTransaction') {
+              return '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
+            }
+            return null;
+          },
+          enable: async function() {
+            return [mockAddress];
+          },
+          sendAsync: function(request, callback) {
+            if (typeof callback === 'function') {
+              this.request(request)
+                .then(result => callback(null, { jsonrpc: '2.0', id: request ? request.id : null, result }))
+                .catch(err => callback(err));
+            }
+          },
+          send: function(request, callback) {
+            if (typeof callback === 'function') {
+              this.request(request)
+                .then(result => callback(null, { jsonrpc: '2.0', id: request ? request.id : null, result }))
+                .catch(err => callback(err));
+            } else {
+              if (request === 'eth_accounts') {
+                return { jsonrpc: '2.0', result: [mockAddress] };
+              }
+              if (request && typeof request === 'object') {
+                const method = request.method;
+                if (method === 'eth_accounts' || method === 'eth_requestAccounts') {
+                  return { jsonrpc: '2.0', id: request.id, result: [mockAddress] };
+                }
+              }
+              return null;
+            }
+          },
+          on: function(event, callback) {
+            console.log('[MetaMask Mock On]', event);
+            if (!listeners[event]) {
+              listeners[event] = [];
+            }
+            listeners[event].push(callback);
+            if (event === 'connect' && typeof callback === 'function') {
+              setTimeout(() => {
+                try {
+                  callback({ chainId: mockChainId });
+                } catch (e) {}
+              }, 0);
+            }
+            return this;
+          },
+          removeListener: function(event, callback) {
+            if (listeners[event]) {
+              listeners[event] = listeners[event].filter(cb => cb !== callback);
+            }
+            return this;
+          },
+          addListener: function(event, callback) {
+            return this.on(event, callback);
+          },
+          off: function(event, callback) {
+            return this.removeListener(event, callback);
+          },
+          autoRefreshOnNetworkChange: false
+        };
+
+        try {
+          Object.defineProperty(window, 'ethereum', {
+            value: ethereumMock,
+            writable: true,
+            configurable: true,
+            enumerable: true
+          });
+          window.ethereum = ethereumMock;
+          console.log('[MetaMask Early Mock] Successfully injected early window.ethereum mock');
+        } catch (e) {
+          console.warn('[MetaMask Early Mock] Failed to define window.ethereum:', e);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
